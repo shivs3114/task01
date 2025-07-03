@@ -29,7 +29,7 @@ class AttendanceModel {
       'latitude': latitude,
       'longitude': longitude,
       'address': address,
-      'checkIn': Timestamp.fromDate(checkIn), // <- Native Firestore Timestamp
+      'checkIn': Timestamp.fromDate(checkIn), // Convert DateTime to Timestamp
 'checkOut': checkOut != null ? Timestamp.fromDate(checkOut!) : null,
       'workingHours': checkOut != null
           ? _getDuration(checkIn, checkOut!)
