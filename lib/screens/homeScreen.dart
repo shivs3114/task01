@@ -90,7 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         }
                         print('checkin pressed');
                          await controller.checkIn();
-                        
+                        controller.name.value = '';
+                        controller.phone.value = '';
+                        controller.imageFile.value = null;
                       }
                     },
                     child: const Text("Check In"),

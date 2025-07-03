@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -106,14 +107,14 @@ Future<String?> uploadImageToSupabase(File imageFile) async {
         .doc(today)
         .collection('checkins')
         .doc(phone.value);
-
+   final address = await getAddressFromLatLng(location.value!.latitude, location.value!.longitude);
     final model = AttendanceModel(
       name: name.value,
       phone: phone.value,
       imageUrl: imageUrl!,
       latitude: location.value!.latitude,
       longitude: location.value!.longitude,
-      address: address.value,
+      address: address,
       checkIn: checkInTime.value!,
     );
 
@@ -125,9 +126,8 @@ Future<String?> uploadImageToSupabase(File imageFile) async {
       textColor: Colors.white,
       fontSize: 16.0,
     );
-    name.value = '';
-    phone.value='';
-    imageFile.value = null;
+    
+    
     print("Check-in saved successfully.");
   } catch (e) {
     print("Failed to save check-in: $e");
@@ -187,4 +187,18 @@ Future<String?> uploadImageToSupabase(File imageFile) async {
     final duration = end.difference(start);
     return '${duration.inHours}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}';
   }
+
+
+  Future<String> getAddressFromLatLng(double lat, double lng) async {
+  try {
+    List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      return '${place.name}, ${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}';
+    }
+  } catch (e) {
+    print('Error in reverse geocoding: $e');
+  }
+  return 'Unknown address';
+}
 }
