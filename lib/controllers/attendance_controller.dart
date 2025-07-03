@@ -42,7 +42,7 @@ class AttendanceController extends GetxController {
     address.value = "Lat: ${location.value!.latitude}, Lon: ${location.value!.longitude}";
   }
 
-  Future<String> uploadImage(File file) async {
+  /*Future<String> uploadImage(File file) async {
   try {
     if (!file.existsSync()) throw Exception("File does not exist.");
     
@@ -58,6 +58,7 @@ class AttendanceController extends GetxController {
     rethrow;
   }
 }
+*/
 
 Future<String?> uploadImageToSupabase(File imageFile) async {
   final supabase = Supabase.instance.client;
@@ -96,7 +97,7 @@ Future<String?> uploadImageToSupabase(File imageFile) async {
 
   
     // Wait for image upload to complete before proceeding
-    final imageUrl = await uploadImage(imageFile.value!);
+    final imageUrl = await uploadImageToSupabase(imageFile.value!);
     print("Image uploaded successfully: $imageUrl");
 
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -109,7 +110,7 @@ Future<String?> uploadImageToSupabase(File imageFile) async {
     final model = AttendanceModel(
       name: name.value,
       phone: phone.value,
-      imageUrl: imageUrl,
+      imageUrl: imageUrl!,
       latitude: location.value!.latitude,
       longitude: location.value!.longitude,
       address: address.value,
