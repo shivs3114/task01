@@ -125,7 +125,9 @@ Future<String?> uploadImageToSupabase(File imageFile) async {
       textColor: Colors.white,
       fontSize: 16.0,
     );
-
+    name.value = '';
+    phone.value='';
+    imageFile.value = null;
     print("Check-in saved successfully.");
   } catch (e) {
     print("Failed to save check-in: $e");

@@ -54,7 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 10),
                 Obx(() => controller.imageFile.value != null
-                  ? Image.file(controller.imageFile.value!, height: 100)
+                  ? Container(
+                    height: Get.height * 0.3,
+                    width: Get.width * 0.8,
+                    child: Image.file(controller.imageFile.value!, height: 100))
                   : const Text("No Image")),
 
             
