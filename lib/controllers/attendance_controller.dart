@@ -6,6 +6,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/attendance_model.dart';
 
 class AttendanceController extends GetxController {
@@ -57,52 +59,86 @@ class AttendanceController extends GetxController {
   }
 }
 
+Future<String?> uploadImageToSupabase(File imageFile) async {
+  final supabase = Supabase.instance.client;
+  final fileName = 'selfie_${DateTime.now().millisecondsSinceEpoch}.jpg';
+  final mimeType = lookupMimeType(imageFile.path) ?? 'image/jpeg';
 
-  Future<void> checkIn() async {
-  if (name.value.isEmpty || phone.value.isEmpty
-      //|| imageFile.value == null
-  ) return;
-  
+  final fileBytes = await imageFile.readAsBytes();
+
+  final response = await supabase.storage
+      .from('selfies') // your bucket name
+      .uploadBinary(
+        'uploads/$fileName',
+        fileBytes,
+        fileOptions: FileOptions(contentType: mimeType),
+      );
+
+  if (response != null) {
+    final imageUrl = supabase.storage
+        .from('selfies')
+        .getPublicUrl('uploads/$fileName');
+    print('✅ Uploaded: $imageUrl');
+    return imageUrl;
+  } else {
+    print('❌ Upload failed');
+    return null;
+  }
+}
+
+
+ Future<void> checkIn() async {
+  if (name.value.isEmpty || phone.value.isEmpty || imageFile.value == null) return;
+
   try {
     await getLocation();
     checkInTime.value = DateTime.now();
-    print('Here i am');
-    
-    final today = DateTime.now().toIso8601String().substring(0, 10); // "2025-07-02"
-final docRef= _firestore
-  .collection('attendance')
-  .doc(today)
-  .collection('checkins')
-  .doc(phone.value);
-final model = AttendanceModel(
+
+  
+    // Wait for image upload to complete before proceeding
+    final imageUrl = await uploadImage(imageFile.value!);
+    print("Image uploaded successfully: $imageUrl");
+
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final docRef = _firestore
+        .collection('attendance')
+        .doc(today)
+        .collection('checkins')
+        .doc(phone.value);
+
+    final model = AttendanceModel(
       name: name.value,
       phone: phone.value,
-      imageUrl: "", // No image yet
+      imageUrl: imageUrl,
       latitude: location.value!.latitude,
       longitude: location.value!.longitude,
       address: address.value,
       checkIn: checkInTime.value!,
     );
 
-  await docRef.set(model.toJson());
-
+    await docRef.set(model.toJson());
 
     Fluttertoast.showToast(
-  msg: "Check-in Done!",
-  backgroundColor: Colors.green,
-  textColor: Colors.white,
-  fontSize: 16.0,
-);
-
+      msg: "Check-in Done!",
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
 
     print("Check-in saved successfully.");
-    /*ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Check-in successful!"))
-                        );*/
   } catch (e) {
     print("Failed to save check-in: $e");
+    Fluttertoast.showToast(
+      msg: "Check-in failed: $e",
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
   }
 }
+
+
+
+  
  Future<void> checkOut() async {
   checkOutTime.value = DateTime.now();
 

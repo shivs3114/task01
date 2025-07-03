@@ -53,14 +53,22 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 10),
-
-              Obx(() => controller.imageFile.value != null
+                Obx(() => controller.imageFile.value != null
                   ? Image.file(controller.imageFile.value!, height: 100)
                   : const Text("No Image")),
 
+            
+
               ElevatedButton(
                 onPressed: () => controller.pickImage(),
-                child: const Text("Take Selfie"),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.camera_alt),
+                    SizedBox(width: 10),
+                    Text("Take Selfie"),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 10),
@@ -71,6 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ElevatedButton(
                     onPressed: ()async {
                       if (_formKey.currentState!.validate()) {
+                        if(controller.imageFile.value == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Please take a selfie"))
+                          );
+                          return;
+                        }
                         print('checkin pressed');
                          await controller.checkIn();
                         
